@@ -6,13 +6,14 @@ import matplotlib.pyplot as plot
 import Image
 from sys import argv
 
+CURVE_A, CURVE_B = 0.00015, 175
 
 def spectrum_from_file(filename):
     raw = raw_from_file(filename)
     return spectrum_from_raw(raw)
 
-def curve(x,a=0.00015,b=-120):
-    return a*(x+b)**2
+def curve(x,a,b):
+    return a*(x-b)**2
 
 def calibration(i):
     a,b = 3.04956866e-01, 3.82033291e+02
@@ -23,8 +24,9 @@ def reverse_calibration(x):
     return int(a*x + b)
 
 def spectrum_from_raw(data):
+    print "Generating spectrum."
     height,width = data.shape
-    a,b = (0.00015, -120)
+    a,b = (CURVE_A, CURVE_B)
     cmax = max(curve(data.shape[1], a, b), curve(0, a, b))
     skip = int(cmax)+1
     N = height-skip
@@ -37,8 +39,9 @@ def spectrum_from_raw(data):
     return output / output[idx550]
 
 def raw_from_file(filename):
-    box = (1050, 1800, 1400, 2750)
-    image = Image.open("test_image.jpg")
+    print "Loading raw data from {}.".format(filename)
+    box = (1050, 1800, 1800, 2850)
+    image = Image.open(filename)
     subimage = image.crop(box)
     data = np.asarray(subimage)
     data = data.sum(2)
@@ -53,7 +56,7 @@ def plot_raw(data, spectrum=None):
     plot.imshow(data)
     plot.gray()
     X = np.linspace(0,data.shape[1],1000)
-    a,b = (0.00015, -120)
+    a,b = (CURVE_A, -CURVE_B)
     for i in xrange(10):
         Y = a*(X+b)**2 + 100*i+50
         plot.plot(X,Y.round(),color="blue")
@@ -68,6 +71,9 @@ def plot_raw(data, spectrum=None):
     X = calibration(X)
     plot.plot(X,spectrum, linewidth=2, color="black")
     plot.xlim(X.min(), X.max())
+    plot.axvline(435.8)
+    plot.axvline(611.6)
+    plot.axvline(487)
     plot.show()
 
 def main(filename):
@@ -79,7 +85,7 @@ def main(filename):
 
 if __name__=="__main__":
     if len(argv) < 2:
-        filename = "test_image.jpg"
+        filename = "test3.jpg"
     else:
         filename = argv[1]
     main(filename)
