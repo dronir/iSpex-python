@@ -7,8 +7,9 @@ import Image
 from sys import argv
 
 CURVE_A_MIN = 0.00007
-CURVE_A_MAX = 0.00010
+CURVE_A_MAX = 0.00013
 CURVE_B = 125
+SLIT_DIVISION = 400
 
 def spectrum_from_file(filename):
     raw = raw_from_file(filename)
@@ -42,10 +43,10 @@ def spectrum_from_raw(data):
     A = np.linspace(CURVE_A_MIN, CURVE_A_MAX, height)
     for i in xrange(N):
         a = A[i]
-        for j in xrange(390):
+        for j in xrange(SLIT_DIVISION):
             di = int(round(curve(j,a,b)))
             output[i,0] += data[i+di, j]
-        for j in xrange(390,width):
+        for j in xrange(SLIT_DIVISION,width):
             di = int(round(curve(j,a,b)))
             output[i,1] += data[i+di, j]
     idx550 = reverse_calibration(550.0)
@@ -59,8 +60,8 @@ def raw_from_file(filename):
     box = (1050, 1800, 1800, 2850)
     image = Image.open(filename)
     subimage = image.crop(box)
-    data = np.asarray(subimage)
-    data = data.sum(2)
+    data = np.asarray(subimage, dtype=np.float64)
+    data = data[:,:,0] + data[:,:,1] + data[:,:,2]
     return data
 
 def plot_raw(data, spectrum=None):
@@ -82,7 +83,7 @@ def plot_raw(data, spectrum=None):
         plot.plot(X,Y.round(),color="white")
     plot.xlim(0,data.shape[1])
     plot.ylim(0,data.shape[0])
-    plot.axvline(390)
+    plot.axvline(SLIT_DIVISION)
     
     plot.figure()
     plot.title("Spectrum normalized to 550nm")
