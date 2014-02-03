@@ -6,9 +6,9 @@ import matplotlib.pyplot as plot
 import Image
 from sys import argv
 
-CURVE_A_MIN = 0.00009
+CURVE_A_MIN = 0.00007
 CURVE_A_MAX = 0.00010
-CURVE_B = 175
+CURVE_B = 125
 
 def spectrum_from_file(filename):
     raw = raw_from_file(filename)
