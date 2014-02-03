@@ -15,22 +15,27 @@ def spectrum_from_file(filename):
     return spectrum_from_raw(raw)
 
 def curve(x,a,b):
+    """This curve corrects for the shape of the spectrum on the sensor, 
+    telling how much to offset pixels in the y direction in column x
+    given parameters a and b."""
     return a*(x-b)**2
 
 def calibration(i):
+    """This function gives wavelength as a function of spectrum array index."""
     a,b = 3.04956866e-01, 3.82033291e+02
     return a*i + b
 
 def reverse_calibration(x):
+    """This function gives spectrum array index as a function of wavelength."""
     a,b = 3.27772287, -1251.98408954
     return int(a*x + b)
 
 def spectrum_from_raw(data):
+    """This function generates the spectrum from cropped and summed image data."""
     print "Generating spectrum."
     height,width = data.shape
     a,b = (CURVE_A_MAX, CURVE_B)
     cmax = curve(np.arange(width), a, b).max()
-    print cmax
     skip = int(cmax)+1
     N = height-skip
     output = np.zeros((N,2))
@@ -49,6 +54,7 @@ def spectrum_from_raw(data):
     return output
 
 def raw_from_file(filename):
+    """This function returns cropped and summed image data from a given file."""
     print "Loading raw data from {}.".format(filename)
     box = (1050, 1800, 1800, 2850)
     image = Image.open(filename)
@@ -58,6 +64,8 @@ def raw_from_file(filename):
     return data
 
 def plot_raw(data, spectrum=None):
+    """This function plots image data and spectrum. If the spectrum is not
+    give, it is computed from the image data."""
     if spectrum==None:
         spectrum = spectrum_from_raw(data)
 
@@ -94,8 +102,10 @@ def plot_raw(data, spectrum=None):
 def main(filename):
     data = raw_from_file(filename)
     spectrum = spectrum_from_raw(data)
-    print "Integral: {}".format(spectrum.sum())
-    print "Max peak {} at index {}".format(spectrum.max(), spectrum.argmax())
+#    print "Integral wide:   {}".format(spectrum[:,0].sum())
+#    print "Integral narrow: {}".format(spectrum[:,1].sum())
+    print "Wide slot max peak {} at index {}".format(spectrum[:,0].max(), spectrum[:,0].argmax())
+    print "Narrow slot max peak {} at index {}".format(spectrum[:,1].max(), spectrum[:,1].argmax())
     plot_raw(data, spectrum)
 
 if __name__=="__main__":
