@@ -11,7 +11,7 @@ currently hard-coded to use the 2448x3264 resolution of the iPhone 4S
 camera. This means the pictures must be taken in vertical mode, or
 rotated afterwards.
 
-Run `python make_spectrum.py image.jpg` to produce the spectral plot.
+Run `python iSpex_spectrum.py image.jpg` to produce the spectral plot.
 
 The code requires NumPy, Matplotlib and the Python Imaging Library (PIL).
 
