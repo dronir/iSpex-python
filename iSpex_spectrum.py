@@ -6,7 +6,9 @@ import matplotlib.pyplot as plot
 import Image
 from sys import argv
 
-CURVE_A, CURVE_B = 0.00015, 175
+CURVE_A_MIN = 0.00009
+CURVE_A_MAX = 0.00010
+CURVE_B = 175
 
 def spectrum_from_file(filename):
     raw = raw_from_file(filename)
@@ -26,17 +28,25 @@ def reverse_calibration(x):
 def spectrum_from_raw(data):
     print "Generating spectrum."
     height,width = data.shape
-    a,b = (CURVE_A, CURVE_B)
-    cmax = max(curve(data.shape[1], a, b), curve(0, a, b))
+    a,b = (CURVE_A_MAX, CURVE_B)
+    cmax = curve(np.arange(width), a, b).max()
+    print cmax
     skip = int(cmax)+1
     N = height-skip
-    output = np.zeros(N)
+    output = np.zeros((N,2))
+    A = np.linspace(CURVE_A_MIN, CURVE_A_MAX, height)
     for i in xrange(N):
-        for j in xrange(width):
+        a = A[i]
+        for j in xrange(390):
             di = int(round(curve(j,a,b)))
-            output[i] += data[i-di, j]
+            output[i,0] += data[i+di, j]
+        for j in xrange(390,width):
+            di = int(round(curve(j,a,b)))
+            output[i,1] += data[i+di, j]
     idx550 = reverse_calibration(550.0)
-    return output / output[idx550]
+    output[:,0] /= output[idx550,0]
+    output[:,1] /= output[idx550,1]
+    return output
 
 def raw_from_file(filename):
     print "Loading raw data from {}.".format(filename)
@@ -56,12 +66,15 @@ def plot_raw(data, spectrum=None):
     plot.imshow(data)
     plot.gray()
     X = np.linspace(0,data.shape[1],1000)
-    a,b = (CURVE_A, -CURVE_B)
-    for i in xrange(10):
-        Y = a*(X+b)**2 + 100*i+50
-        plot.plot(X,Y.round(),color="blue")
+    b = CURVE_B
+    A = np.linspace(CURVE_A_MIN, CURVE_A_MAX, data.shape[0])
+    for y in xrange(0, data.shape[0], 50):
+        a = A[y]
+        Y = a*(X-b)**2 + y
+        plot.plot(X,Y.round(),color="white")
     plot.xlim(0,data.shape[1])
     plot.ylim(0,data.shape[0])
+    plot.axvline(390)
     
     plot.figure()
     plot.title("Spectrum normalized to 550nm")
@@ -69,11 +82,13 @@ def plot_raw(data, spectrum=None):
     plot.ylabel("Normalized intensity")
     X = np.arange(len(spectrum))
     X = calibration(X)
-    plot.plot(X,spectrum, linewidth=2, color="black")
+    plot.plot(X,spectrum[:,0], "-", linewidth=2, color="black", label="Wide slit")
+    plot.plot(X,spectrum[:,1], ":", linewidth=2, color="black", label="Narrow slit")
     plot.xlim(X.min(), X.max())
-    plot.axvline(435.8)
-    plot.axvline(611.6)
-    plot.axvline(487)
+    plot.legend()
+#    plot.axvline(435.8)
+#    plot.axvline(611.6)
+#    plot.axvline(487)
     plot.show()
 
 def main(filename):
