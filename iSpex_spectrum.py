@@ -3,7 +3,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plot
-import Image
+from PIL import Image
 from sys import argv
 
 CURVE_A_MIN = 0.00007
