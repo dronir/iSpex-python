@@ -66,7 +66,7 @@ def raw_from_file(filename):
 
 def plot_raw(data, spectrum=None):
     """This function plots image data and spectrum. If the spectrum is not
-    give, it is computed from the image data."""
+    given, it is computed from the image data."""
     if spectrum==None:
         spectrum = spectrum_from_raw(data)
 
